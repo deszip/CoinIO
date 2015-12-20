@@ -10,8 +10,15 @@
     - upload parsed data
 */
 
+extern crate xml;
+
+use std::io::*;
+use std::fs::File;
+
 use super::rustc_serialize::json::Json as Json;
 use super::rustc_serialize::json as json;
+
+use self::xml::reader::{EventReader, XmlEvent};
 
 use parse::Parse;
 
@@ -75,9 +82,13 @@ pub struct CoinApi {
 
 impl CoinApi {
 
+    // MARK: Initialization
+
     pub fn new(user_login: &'static str, user_password: &'static str) -> CoinApi {
         CoinApi{ parse: Parse::new(COIN_APP_ID, COIN_API_KEY), login: user_login, password: user_password }
     }
+
+    // MARK: API Calls
 
     pub fn expenses_count(&mut self) -> i32 {
         // build json predicate based on current user
@@ -120,5 +131,52 @@ impl CoinApi {
         println!("Expense: {}", serialized_expense);
 
         &self.parse.create_object("CNExpense", &serialized_expense);
+    }
+    
+    // MARK: Input parsing
+    
+    pub fn parseFile(&mut self, path: &str) -> Vec<Expense> {
+        //println!("Parsing file at: {}", path);
+        
+        match File::open(path) {
+            Ok(mut file) => {
+                let mut contents = String::new();
+                file.read_to_string(&mut contents);
+                
+                let mut days_count = 0;
+                let mut expense_count = 0;
+                let mut expense_data: Vec<&str> = vec![];
+                
+                for line in contents.lines() {
+                    if line.starts_with("<div>") && line.len() > 5 {
+                        if line.starts_with("<div><b>") && line.ends_with("</b></div>") && line.chars().nth(10).unwrap() == '.' {
+                            // Date line
+                            let date = &line[8..line.len() - 10];
+                            //println!("{}", date);
+                            days_count += 1;
+                        } else if line.starts_with("<div>") && line.ends_with("</div>") && line.len() > 18 {
+                            // Expense line
+                            let expense = &line[5..line.len() - 6];
+                            let parts: Vec<&str> = expense.splitn(2, " - ").collect();
+                            if parts.len() == 2 {
+                                //println!("    {}: {}", parts[0], parts[1]);
+                                expense_data.app
+                                expense_count += 1;
+                            } else {
+                               println!("Got mailformed entry: {}", line);
+                            }
+                        }
+                    }
+                }
+                
+                println!("Parsed {} days, with {} expenses", days_count, expense_count);
+            }
+            
+            Err(error) => {
+                println!("Error opening file: {}", error);
+            }
+        }
+        
+        vec![]
     }
 }

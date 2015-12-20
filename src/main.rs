@@ -35,12 +35,14 @@ fn main() {
     enum ParsingState {
         empty,
         expect_login,
-        expect_password
+        expect_password,
+        expect_input_file
     }
 
     let mut state: ParsingState = ParsingState::empty;
     let mut login: &str = "";
     let mut password: &str = "";
+    let mut input_file_path: &str = "";
 
     for arg in args.iter() {
         match arg.as_ref() {
@@ -52,6 +54,11 @@ fn main() {
                 state = ParsingState::expect_password;
                 println!("state: password");
             }
+            "-i" => {
+                state = ParsingState::expect_input_file;
+                println!("state: input file");
+            }
+            
             value @ _ => {
                 match state {
                     ParsingState::expect_login => {
@@ -62,6 +69,10 @@ fn main() {
                         state = ParsingState::empty;
                         password = value;
                     }
+                    ParsingState::expect_input_file => {
+                        state = ParsingState::empty;
+                        input_file_path = value;
+                    }
                     ParsingState::empty => {
                         println!("Skipping: {}", value)
                     }
@@ -70,23 +81,22 @@ fn main() {
         }
     }
 
-    println!("Login: {}, password: {}", login, password);
-
-    //let tail: Vec<&str> = args.tail().iter().map(|x| &x).collect();
-    //println!("tail: {:?}", args);
-
-/*
-    match tail {
-        [ref executable_path] => {
-            panic!("Called with no arguments. Nothing to do.");
-        }
-
-        _ => {}
-    }
-*/
-
-    /*
     let mut coin_api = CoinApi::new(COIN_LOGIN, COIN_PASSWORD);
+
+    // Handling login
+    if login.len() > 0 && password.len() > 0 {
+        println!("Login: {}, password: {}", login, password);
+    }
+
+    // Handling input
+    if input_file_path.len() > 0 {
+        println!("Got path: {}", input_file_path);
+        let expenses = coin_api.parseFile(input_file_path);
+        println!("Parsed {} expenses", expenses.len());
+    }
+    
+    /*
+    // Printing stats
 
     let categories_count = coin_api.categories_count();
     let expense_count = coin_api.expenses_count();
@@ -94,6 +104,4 @@ fn main() {
     println!("Categories: {}", categories_count);
     println!("Expenses: {}", expense_count);
     */
-
-    //coin_api.create_expense(12, "Foo");
 }
