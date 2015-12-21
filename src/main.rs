@@ -80,28 +80,24 @@ fn main() {
             }
         }
     }
-
-    let mut coin_api = CoinApi::new(COIN_LOGIN, COIN_PASSWORD);
-
+    
     // Handling login
     if login.len() > 0 && password.len() > 0 {
-        println!("Login: {}, password: {}", login, password);
+        let mut coin_api = CoinApi::new(login, password);
+        coin_api.login();
+        
+        // Printing stats
+        let categories_count = coin_api.categories_count();
+        let expense_count = coin_api.expenses_count();
+        println!("Categories: {}", categories_count);
+        println!("Expenses: {}", expense_count);
     }
 
     // Handling input
+    let mut fake_coin_api = CoinApi::new(COIN_LOGIN, COIN_PASSWORD);
     if input_file_path.len() > 0 {
         println!("Got path: {}", input_file_path);
-        let expenses = coin_api.parseFile(input_file_path);
+        let expenses = fake_coin_api.parseFile(input_file_path);
         println!("Parsed {} expenses", expenses.len());
     }
-    
-    /*
-    // Printing stats
-
-    let categories_count = coin_api.categories_count();
-    let expense_count = coin_api.expenses_count();
-
-    println!("Categories: {}", categories_count);
-    println!("Expenses: {}", expense_count);
-    */
 }

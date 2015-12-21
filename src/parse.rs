@@ -9,7 +9,7 @@ use self::hyper::header::*;
 static PARSE_APP_ID_HEADER_KEY: &'static str = "X-Parse-Application-Id";
 static PARSE_API_KEY_HEADER_KEY: &'static str = "X-Parse-REST-API-Key";
 
-//static PARSE_LOGIN_URL_TEMPLATE: &'static str = "https://api.parse.com/1/login/";
+static PARSE_LOGIN_URL_TEMPLATE: &'static str = "https://api.parse.com/1/login/";
 static PARSE_CLASS_URL_TEMPLATE: &'static str = "https://api.parse.com/1/classes/[class]/";
 
 
@@ -31,9 +31,30 @@ impl Parse {
         Parse { client: Client::new(), app_id: app_id, api_key: api_key}
     }
 
+    pub fn login(&self, username: &str, password: &str) {
+        let base_url = PARSE_LOGIN_URL_TEMPLATE.to_string();
+
+        let mut parameters: Vec<(&str, &str)> = vec![];
+        parameters.push(("username", username));
+        parameters.push(("password", password));
+        let login_url = build_query_url(&base_url, parameters).ok().unwrap();
+
+        let headers = self.get_headers();
+
+        match self.client.get(login_url).headers(headers).send() {
+            Ok(mut response) => {
+                let mut body = String::new();
+                response.read_to_string(&mut body).unwrap();
+                println!("Login: {}", body);
+            },
+
+            Err(error) => println!("Failed to login: {}", error),
+        }
+    }
+
     // MARK: Info requests
 
-    pub fn count_total(&mut self, class_name: &'static str, predicate: Vec<(&'static str, &'static str)>) -> String {
+    pub fn count_total(&mut self, class_name: &str, predicate: Vec<(&str, &str)>) -> String {
         let base_url = PARSE_CLASS_URL_TEMPLATE.to_string().replace("[class]", class_name);
 
         let mut parameters = predicate;
@@ -54,13 +75,13 @@ impl Parse {
         }
     }
 
-    pub fn count(&mut self, class_name: &'static str) -> String {
+    pub fn count(&mut self, class_name: &str) -> String {
         let predicate = vec![];
         self.count_total(class_name, predicate)
     }
 
     // MARK: Create requests
-    pub fn create_object(&mut self, class_name: &'static str, serialized_instance: &str) {
+    pub fn create_object(&mut self, class_name: &str, serialized_instance: &str) {
         let url = Url::parse(&(PARSE_CLASS_URL_TEMPLATE.to_string().replace("[class]", class_name))).ok().unwrap();
         let headers = self.get_headers();
 
@@ -93,7 +114,7 @@ impl Parse {
 
 // Utilities
 
-fn build_query_url(base_url: &str, parameters: Vec<(&'static str, &'static str)>) -> Result<Url, ParseUrlError> {
+fn build_query_url(base_url: &str, parameters: Vec<(&str, &str)>) -> Result<Url, ParseUrlError> {
     match Url::parse(base_url) {
         Ok(mut parsed_url) => {
             parsed_url.set_query_from_pairs(parameters.into_iter());

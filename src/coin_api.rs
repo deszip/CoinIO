@@ -76,19 +76,23 @@ impl Expense {
 
 pub struct CoinApi {
     parse: Parse,
-    login: &'static str,
-    password: &'static str,
+    login: String,
+    password: String,
 }
 
 impl CoinApi {
 
     // MARK: Initialization
 
-    pub fn new(user_login: &'static str, user_password: &'static str) -> CoinApi {
-        CoinApi{ parse: Parse::new(COIN_APP_ID, COIN_API_KEY), login: user_login, password: user_password }
+    pub fn new<S>(user_login: S, user_password: S) -> CoinApi where S: Into<String> {
+        CoinApi{ parse: Parse::new(COIN_APP_ID, COIN_API_KEY), login: user_login.into(), password: user_password.into() }
     }
 
     // MARK: API Calls
+
+    pub fn login(&self) {
+        &self.parse.login(&self.login, &self.password);
+    }
 
     pub fn expenses_count(&mut self) -> i32 {
         // build json predicate based on current user
@@ -160,7 +164,6 @@ impl CoinApi {
                             let parts: Vec<&str> = expense.splitn(2, " - ").collect();
                             if parts.len() == 2 {
                                 //println!("    {}: {}", parts[0], parts[1]);
-                                expense_data.app
                                 expense_count += 1;
                             } else {
                                println!("Got mailformed entry: {}", line);
