@@ -11,14 +11,15 @@
 */
 
 extern crate xml;
+extern crate chrono;
+
+use self::chrono::*;
 
 use std::io::*;
 use std::fs::File;
 
 use super::rustc_serialize::json::Json as Json;
 use super::rustc_serialize::json as json;
-
-use self::xml::reader::{EventReader, XmlEvent};
 
 use parse::Parse;
 
@@ -36,6 +37,7 @@ struct Owner {
     objectId: &'static str
 }
 
+#[allow(dead_code)]
 impl Owner {
     pub fn new(object_id: &'static str) -> Owner {
         Owner { __type: "Pointer", className: "_User", objectId: object_id }
@@ -43,14 +45,15 @@ impl Owner {
 }
 
 #[derive(RustcEncodable)]
-struct Date {
-    __type: &'static str,
-    iso: &'static str
+struct ExpenseDate {
+    __type: String,
+    iso: String
 }
 
-impl Date {
-    pub fn new(iso: &'static str) -> Date {
-        Date { __type: "Date", iso: iso }
+#[allow(dead_code)]
+impl ExpenseDate {
+    pub fn new<S>(iso: S) -> ExpenseDate where S: Into<String> {
+        ExpenseDate { __type: "Date".to_string(), iso: iso.into() }
     }
 }
 
@@ -61,11 +64,12 @@ struct Expense {
     title: &'static str,
     expenseId: &'static str,
     owner: Owner,
-    creationDate: Date
+    creationDate: ExpenseDate
 }
 
+#[allow(dead_code)]
 impl Expense {
-    pub fn new(amount: i32, title: &'static str, creation_date: Date, owner: Owner) -> Expense {
+    pub fn new(amount: i32, title: &'static str, creation_date: ExpenseDate, owner: Owner) -> Expense {
         let expense_id = "";
         Expense { amount: amount, title: title, expenseId: expense_id, owner: owner, creationDate: creation_date }
     }
@@ -80,6 +84,7 @@ pub struct CoinApi {
     password: String,
 }
 
+#[allow(dead_code)]
 impl CoinApi {
 
     // MARK: Initialization
@@ -127,7 +132,7 @@ impl CoinApi {
     }
 
     pub fn create_expense(&mut self, amount: i32, title: &'static str) {
-        let creation_date = Date::new("2015-05-30T18:02:52.249Z");
+        let creation_date = ExpenseDate::new("2015-05-30T18:02:52.249Z");
         let owner = Owner::new("b1OFAr3yTN");
         let expense = Expense::new(amount, title, creation_date, owner);
 
@@ -139,7 +144,7 @@ impl CoinApi {
     
     // MARK: Input parsing
     
-    pub fn parseFile(&mut self, path: &str) -> Vec<Expense> {
+    pub fn parse_file(&mut self, path: &str) -> Vec<Expense> {
         //println!("Parsing file at: {}", path);
         
         match File::open(path) {
@@ -149,21 +154,23 @@ impl CoinApi {
                 
                 let mut days_count = 0;
                 let mut expense_count = 0;
-                let mut expense_data: Vec<&str> = vec![];
+                //let mut expense_data: Vec<&str> = vec![];
                 
+                let mut date: ExpenseDate = ExpenseDate::new("");
                 for line in contents.lines() {
                     if line.starts_with("<div>") && line.len() > 5 {
                         if line.starts_with("<div><b>") && line.ends_with("</b></div>") && line.chars().nth(10).unwrap() == '.' {
                             // Date line
-                            let date = &line[8..line.len() - 10];
-                            //println!("{}", date);
+                            let iso_date_string = format!("{:?}", UTC.ymd(2015, 7, 8).and_hms(9, 10, 11));
+                            println!("{}", iso_date_string);
+                            date = ExpenseDate::new(&line[8..line.len() - 10]);
                             days_count += 1;
                         } else if line.starts_with("<div>") && line.ends_with("</div>") && line.len() > 18 {
                             // Expense line
                             let expense = &line[5..line.len() - 6];
                             let parts: Vec<&str> = expense.splitn(2, " - ").collect();
                             if parts.len() == 2 {
-                                //println!("    {}: {}", parts[0], parts[1]);
+                                println!("{} - {} : {}", date.iso, parts[0], parts[1]);
                                 expense_count += 1;
                             } else {
                                println!("Got mailformed entry: {}", line);

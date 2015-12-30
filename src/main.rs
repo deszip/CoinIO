@@ -33,13 +33,13 @@ fn main() {
     //let unwrapped_args: Vec<&str> = args.iter().map(|& ref x| println!("arg: {:?}", x));
 
     enum ParsingState {
-        empty,
-        expect_login,
-        expect_password,
-        expect_input_file
+        Empty,
+        ExpectLogin,
+        ExpectPassword,
+        ExpectInputFile
     }
 
-    let mut state: ParsingState = ParsingState::empty;
+    let mut state: ParsingState = ParsingState::Empty;
     let mut login: &str = "";
     let mut password: &str = "";
     let mut input_file_path: &str = "";
@@ -47,33 +47,33 @@ fn main() {
     for arg in args.iter() {
         match arg.as_ref() {
             "-l" => {
-                state = ParsingState::expect_login;
+                state = ParsingState::ExpectLogin;
                 println!("state: login");
             },
             "-p" => {
-                state = ParsingState::expect_password;
+                state = ParsingState::ExpectPassword;
                 println!("state: password");
             }
             "-i" => {
-                state = ParsingState::expect_input_file;
+                state = ParsingState::ExpectInputFile;
                 println!("state: input file");
             }
             
             value @ _ => {
                 match state {
-                    ParsingState::expect_login => {
-                        state = ParsingState::empty;
+                    ParsingState::ExpectLogin => {
+                        state = ParsingState::Empty;
                         login = value;
                     }
-                    ParsingState::expect_password => {
-                        state = ParsingState::empty;
+                    ParsingState::ExpectPassword => {
+                        state = ParsingState::Empty;
                         password = value;
                     }
-                    ParsingState::expect_input_file => {
-                        state = ParsingState::empty;
+                    ParsingState::ExpectInputFile => {
+                        state = ParsingState::Empty;
                         input_file_path = value;
                     }
-                    ParsingState::empty => {
+                    ParsingState::Empty => {
                         println!("Skipping: {}", value)
                     }
                 }
@@ -97,7 +97,7 @@ fn main() {
     let mut fake_coin_api = CoinApi::new(COIN_LOGIN, COIN_PASSWORD);
     if input_file_path.len() > 0 {
         println!("Got path: {}", input_file_path);
-        let expenses = fake_coin_api.parseFile(input_file_path);
+        let expenses = fake_coin_api.parse_file(input_file_path);
         println!("Parsed {} expenses", expenses.len());
     }
 }

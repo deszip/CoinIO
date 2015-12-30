@@ -25,6 +25,7 @@ pub enum ParseUrlError {
     InvalidBaseUrl
 }
 
+#[allow(dead_code)]
 impl Parse {
 
     pub fn new(app_id: &'static str, api_key: &'static str) -> Parse {
@@ -79,7 +80,7 @@ impl Parse {
         let predicate = vec![];
         self.count_total(class_name, predicate)
     }
-
+    
     // MARK: Create requests
     pub fn create_object(&mut self, class_name: &str, serialized_instance: &str) {
         let url = Url::parse(&(PARSE_CLASS_URL_TEMPLATE.to_string().replace("[class]", class_name))).ok().unwrap();
@@ -97,7 +98,7 @@ impl Parse {
             }
         }
     }
-
+    
     // MARK Utilities
 
     fn get_headers(&self) -> Headers {
