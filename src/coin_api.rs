@@ -23,8 +23,8 @@ use super::rustc_serialize::json as json;
 
 use parse::Parse;
 
-pub static COIN_APP_ID: &'static str = "BMx0eWt6Xtrle8CkjJyTOMwUVLf0vh5wM8Os5ljy";
-pub static COIN_API_KEY: &'static str = "ZPV6tUDO71f9bwVWxc1iQl09St1o3ycEi5qXEoKs";
+pub static COIN_APP_ID: &'static str = "";
+pub static COIN_API_KEY: &'static str = "";
 
 
 
