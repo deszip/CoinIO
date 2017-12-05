@@ -20,8 +20,8 @@ use coin_api::CoinApi;
 mod parse;
 mod coin_api;
 
-static COIN_LOGIN: &'static str = "raf.rafiki@gmail.com";
-static COIN_PASSWORD: &'static str = "cfd32";
+static COIN_LOGIN: &'static str = "";
+static COIN_PASSWORD: &'static str = "";
 
 
 
